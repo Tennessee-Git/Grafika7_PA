@@ -1,0 +1,24 @@
+body {
+  padding: 0;
+  margin: 0;
+  background-color: bisque;
+}
+
+.heading {
+  text-align: center;
+}
+
+.tools {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0;
+  gap: 5px;
+}
+
+.canvas {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto;
+  border: 1px solid black;
+  background-color: white;
+}
