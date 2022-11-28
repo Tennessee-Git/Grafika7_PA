@@ -161,6 +161,10 @@ const calcDist = (x1, y1, x2, y2) => {
   return Math.sqrt(xPart + yPart);
 };
 
+const calcRad = (angle) => {
+  return ((Number(angle) % 360) * Math.PI) / 180;
+};
+
 const checkIfInside = (point) => {
   var n = points.length,
     is_in = false,
@@ -224,6 +228,8 @@ const canvasMouseDown = (event) => {
       }
       break;
     case "3":
+      canvas.removeEventListener("mousemove", moveByMouse);
+      canvas.removeEventListener("mouseup", stopDrawingAndMove);
       if (event.ctrlKey) {
         addControlPoint(event);
         clearCanvasAndDraw();
@@ -231,6 +237,8 @@ const canvasMouseDown = (event) => {
       }
       break;
     case "4":
+      canvas.removeEventListener("mousemove", moveByMouse);
+      canvas.removeEventListener("mouseup", stopDrawingAndMove);
       if (event.ctrlKey) {
         addControlPoint(event);
         clearCanvasAndDraw();
@@ -247,7 +255,7 @@ const removeCanvasEventListeners = () => {
 canvas.addEventListener("mousedown", canvasMouseDown);
 
 canvas.addEventListener("mouseup", () => {
-  removeCanvasEventListeners();
+  canvas.removeEventListener("mousemove", moveByMouse);
   canvas.addEventListener("mousedown", canvasMouseDown);
 });
 
@@ -266,10 +274,10 @@ setControlPoint.addEventListener("click", () => {
 });
 
 moveButton.addEventListener("click", () => {
-  console.log("moveButton");
   if (modeSelect.value === "2") {
     var xVal = moveX2.value - moveX1.value,
       yVal = moveY2.value - moveY1.value;
+    console.log(xVal, yVal);
     translateByVector(xVal, yVal);
     clearCanvasAndDraw();
   } else {
@@ -278,18 +286,22 @@ moveButton.addEventListener("click", () => {
 });
 
 rotate.addEventListener("click", () => {
-  if (modeSelect.value === "3" && angle.value > 0) {
-    var temp = ((Number(angle.value) % 360) * Math.PI) / 180;
+  if (modeSelect.value === "3" && angle.value > 0 && controlPoint.getX !== -1) {
+    var temp = calcRad(angle.value);
     rotateByAngle(controlPoint, temp);
     clearCanvasAndDraw();
     drawControlPoint();
+  } else {
+    alert("Set control point, then rotate! Make sure the angle is correct!");
   }
 });
 
 scale.addEventListener("click", () => {
-  if (modeSelect.value === "4") {
+  if (modeSelect.value === "4" && xScale.value > 0 && yScale.value > 0) {
     scaleByPoint(controlPoint, xScale.value, yScale.value);
     clearCanvasAndDraw();
     drawControlPoint();
+  } else {
+    alert("Choose scale mode! Make sure scale values are correct!");
   }
 });
