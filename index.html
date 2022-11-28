@@ -9,18 +9,50 @@
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <h1 class="heading">2D</h1>
-    <div class="tools">
-      <select name="mode" id="mode">
-        <option value="1">Draw</option>
-        <option value="2">Move</option>
-        <option value="3">Rotate</option>
-        <option value="4">Scale</option>
-      </select>
-      <button id="clear">Clear</button>
-      <button id="save">Save</button>
-      <input type="file" name="load" id="load" />
+    <div class="tools-window">
+      <div class="tools">
+        <select name="mode" id="mode">
+          <option value="1">Draw</option>
+          <option value="2">Move</option>
+          <option value="3">Rotate</option>
+          <option value="4">Scale</option>
+        </select>
+        <button id="clear">Clear</button>
+        <button id="save">Save</button>
+        <input type="file" name="load" id="load" />
+      </div>
+      <div class="tools">
+        <label for="moveX1">x1</label>
+        <input type="number" name="moveX1" id="moveX1" />
+        <label for="moveY1">y1</label>
+        <input type="number" name="moveX2" id="moveX2" />
+        <label for="moveX2">x2</label>
+        <input type="number" name="moveY1" id="moveY1" />
+        <label for="moveY2">y2</label>
+        <input type="number" name="moveY2" id="moveY2" />
+        <button id="move">Move</button>
+      </div>
+      <div class="tools">
+        <label for="xPos">xPos</label>
+        <input type="number" name="xPos" id="xPos" />
+        <label for="yPos">yPos</label>
+        <input type="number" name="yPos" id="yPos" />
+        <button id="setControlPoint">Set CP</button>
+      </div>
+      <div class="tools">
+        <label for="xScale">xScale</label>
+        <input type="number" name="xScale" id="xScale" />
+        <label for="yScale">yScale</label>
+        <input type="number" name="yScale" id="yScale" />
+        <button id="scale">Scale</button>
+      </div>
+      <div class="tools">
+        <label for="angle">Angle</label>
+        <input type="number" name="angle" id="angle" />
+        <button id="rotate">Rotate</button>
+      </div>
     </div>
-    <canvas id="canvas" width="1000" height="800" class="canvas"></canvas>
+
+    <canvas id="canvas" width="1000" height="700" class="canvas"></canvas>
   </body>
 </html>

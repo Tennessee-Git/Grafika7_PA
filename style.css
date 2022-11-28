@@ -1,7 +1,9 @@
 body {
   padding: 0;
   margin: 0;
-  background-color: bisque;
+
+  font-family: "Courier New", Courier, monospace;
+  background-color: rgb(219, 227, 255);
 }
 
 .heading {
@@ -11,14 +13,29 @@ body {
 .tools {
   display: flex;
   justify-content: center;
-  margin: 10px 0;
+  padding: 10px 0;
   gap: 5px;
+}
+
+.tools-window {
+  background-color: rgb(241, 241, 241);
+  width: 1000px;
+  margin: 20px auto 0 auto;
+  border: 2px solid black;
 }
 
 .canvas {
   display: flex;
   justify-content: center;
-  margin: 0 auto;
-  border: 1px solid black;
+  margin: 0 auto 20px auto;
+  border: 2px solid black;
+  border-top: 0;
   background-color: white;
+}
+
+button {
+  background-color: rgb(91, 83, 201);
+  color: white;
+  border: none;
+  border-radius: 5px;
 }
