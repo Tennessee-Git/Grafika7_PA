@@ -168,12 +168,23 @@ const calcRad = (angle) => {
   return ((Number(angle) % 360) * Math.PI) / 180;
 };
 
-const calcAngle = (p1, p2) => {};
-
 const calcScales = (beg, end) => {
-  var scales = [1, 1];
+  var scale = 1;
+  var begCP = calcDist(
+      beg.getX,
+      beg.getY,
+      controlPoint.getX,
+      controlPoint.getY
+    ),
+    begEnd = calcDist(beg.getX, beg.getY, end.getX, end.getY),
+    endCP = calcDist(end.getX, end.getY, controlPoint.getX, controlPoint.getY);
+  if (begCP < endCP) {
+    scale = (begEnd + begCP) / begCP;
+  } else {
+    scale = (begCP - begEnd) / begCP;
+  }
 
-  return scales;
+  return scale;
 };
 
 function pointInPolygon(point) {
@@ -224,7 +235,7 @@ const moveByMouse = (e) => {
   }
 };
 
-const stopMoving = (e) => {
+const stopMoving = () => {
   drawPoint = new Point(-1, -1);
   clearCanvasAndDraw();
 };
@@ -241,13 +252,7 @@ const rotateByMouse = (e) => {
         drawPoint.getY - controlPoint.getY,
         drawPoint.getX - controlPoint.getX
       ),
-      endAngle = Math.atan2(my - controlPoint.getY, mx - controlPoint.getX),
-      radius = calcDist(
-        controlPoint.getX,
-        controlPoint.getY,
-        drawPoint.getX,
-        drawPoint.getY
-      );
+      endAngle = Math.atan2(my - controlPoint.getY, mx - controlPoint.getX);
     angle = endAngle - startAngle;
     rotateByAngle(controlPoint, angle);
     drawPoint.setX = mx;
@@ -255,7 +260,7 @@ const rotateByMouse = (e) => {
   }
 };
 
-const stopRotating = (e) => {
+const stopRotating = () => {
   drawPoint = new Point(-1, -1);
   clearCanvasAndDraw();
   drawControlPoint();
@@ -266,22 +271,17 @@ const scaleByMouse = (e) => {
     my = getCursorPosition(e)[1] - canvas.offsetTop;
   clearCanvasAndDraw();
   drawControlPoint();
-  if (drawPoint) {
-    ctx.moveTo(drawPoint.getX, drawPoint.getY);
-    ctx.lineTo(mx, my);
-    ctx.stroke();
-
-    console.log(scales);
+  if (controlPoint.getX === -1)
+    alert("Set control point by text input or CTRL + Left Click!");
+  if (drawPoint && controlPoint.getX !== -1) {
+    var scale = calcScales(drawPoint, new Point(mx, my));
+    scaleByPoint(controlPoint, scale, scale);
+    drawPoint.setX = mx;
+    drawPoint.setY = my;
   }
 };
 
-const stopScaling = (e) => {
-  var mx = getCursorPosition(e)[0] - canvas.offsetLeft,
-    my = getCursorPosition(e)[1] - canvas.offsetTop;
-  var scales = calcScales(drawPoint, new Point(mx, my));
-  var sX = scales[0];
-  var sY = scales[1];
-  scaleByPoint(controlPoint, sX, sY);
+const stopScaling = () => {
   drawPoint = new Point(-1, -1);
   clearCanvasAndDraw();
   drawControlPoint();
