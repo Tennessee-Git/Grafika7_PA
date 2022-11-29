@@ -154,7 +154,7 @@ const addControlPointFromInput = () => {
     xPos.value < 1000 &&
     yPos.value < 1000
   ) {
-    controlPoint = new Point(xPos.value, yPos.value);
+    controlPoint = new Point(Number(xPos.value), Number(yPos.value));
   }
 };
 
@@ -383,7 +383,6 @@ moveButton.addEventListener("click", () => {
   if (modeSelect.value === "2") {
     var xVal = moveX2.value - moveX1.value,
       yVal = moveY2.value - moveY1.value;
-    console.log(xVal, yVal);
     translateByVector(xVal, yVal);
     clearCanvasAndDraw();
   } else {
