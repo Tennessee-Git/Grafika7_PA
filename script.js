@@ -36,7 +36,7 @@ let modeSelect = document.getElementById("mode"),
   moveX2 = document.getElementById("moveX2"),
   moveY2 = document.getElementById("moveY2"),
   rotate = document.getElementById("rotate"),
-  angle = document.getElementById("angle"),
+  angleValue = document.getElementById("angle"),
   scale = document.getElementById("scale"),
   xScale = document.getElementById("xScale"),
   yScale = document.getElementById("yScale");
@@ -45,7 +45,8 @@ let points = [];
 let controlPoint = new Point(-1, -1),
   drawPoint = new Point(-1, -1);
 let mouseX = -1,
-  mouseY = -1;
+  mouseY = -1,
+  angle = -1;
 
 const getCursorPosition = (e) => {
   var x;
@@ -165,46 +166,123 @@ const calcRad = (angle) => {
   return ((Number(angle) % 360) * Math.PI) / 180;
 };
 
-const checkIfInside = (point) => {
-  var n = points.length,
-    is_in = false,
-    x = point.getX,
-    y = point.getY,
-    x1,
-    x2,
-    y1,
-    y2;
+const calcAngle = (p1, p2) => {};
 
-  for (var i = 0; i < n - 1; ++i) {
-    x1 = points[i].getX;
-    x2 = points[i + 1].getX;
-    y1 = points[i].getY;
-    y2 = points[i + 1].getY;
+const calcScales = (beg, end) => {
+  var scales = [1, 1];
 
-    if (y < y1 != y < y2 && x < ((x2 - x1) * (y - y1)) / (y2 - y1) + x1) {
-      is_in = !is_in;
+  return scales;
+};
+
+function pointInPolygon(point) {
+  const x = point.getX,
+    y = point.getY;
+  let wn = 0;
+
+  for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+    let xi = points[i].getX,
+      yi = points[i].getY;
+    let xj = points[j].getX,
+      yj = points[j].getY;
+
+    if (yj <= y) {
+      if (yi > y) {
+        if (isLeft(new Point(xj, yj), new Point(xi, yi), new Point(x, y)) > 0) {
+          wn++;
+        }
+      }
+    } else {
+      if (yi <= y) {
+        if (isLeft(new Point(xj, yj), new Point(xi, yi), new Point(x, y)) < 0) {
+          wn--;
+        }
+      }
     }
   }
+  return wn != 0;
+}
 
-  return is_in;
-};
+function isLeft(P0, P1, P2) {
+  let res =
+    (P1.getX - P0.getX) * (P2.getY - P0.getY) -
+    (P2.getX - P0.getX) * (P1.getY - P0.getY);
+  return res;
+}
 
 const moveByMouse = (e) => {
+  var mx = getCursorPosition(e)[0] - canvas.offsetLeft;
+  var my = getCursorPosition(e)[1] - canvas.offsetTop;
   clearCanvasAndDraw();
   if (drawPoint) {
-    ctx.moveTo(drawPoint.getX, drawPoint.getY);
-    ctx.lineTo(e.pageX - canvas.offsetLeft, e.pageY - canvas.offsetTop);
-    ctx.stroke();
+    var xVal = mx - drawPoint.getX,
+      yVal = my - drawPoint.getY;
+    translateByVector(xVal, yVal);
+    drawPoint.setX = mx;
+    drawPoint.setY = my;
   }
 };
 
-const stopDrawingAndMove = (e) => {
+const stopMoving = (e) => {
+  drawPoint = new Point(-1, -1);
+  clearCanvasAndDraw();
+};
+
+const rotateByMouse = (e) => {
   var mx = getCursorPosition(e)[0] - canvas.offsetLeft;
   var my = getCursorPosition(e)[1] - canvas.offsetTop;
-  var xVal = mx - drawPoint.getX,
-    yVal = my - drawPoint.getY;
-  translateByVector(xVal, yVal);
   clearCanvasAndDraw();
+  drawControlPoint();
+  if (controlPoint.getX === -1)
+    alert("Set control point by text input or CTRL + Left Click!");
+  if (drawPoint && controlPoint.getX !== -1) {
+    var startAngle = Math.atan2(
+        drawPoint.getY - controlPoint.getY,
+        drawPoint.getX - controlPoint.getX
+      ),
+      endAngle = Math.atan2(my - controlPoint.getY, mx - controlPoint.getX),
+      radius = calcDist(
+        controlPoint.getX,
+        controlPoint.getY,
+        drawPoint.getX,
+        drawPoint.getY
+      );
+    angle = endAngle - startAngle;
+    rotateByAngle(controlPoint, angle);
+    drawPoint.setX = mx;
+    drawPoint.setY = my;
+  }
+};
+
+const stopRotating = (e) => {
+  drawPoint = new Point(-1, -1);
+  clearCanvasAndDraw();
+  drawControlPoint();
+};
+
+const scaleByMouse = (e) => {
+  var mx = getCursorPosition(e)[0] - canvas.offsetLeft,
+    my = getCursorPosition(e)[1] - canvas.offsetTop;
+  clearCanvasAndDraw();
+  drawControlPoint();
+  if (drawPoint) {
+    ctx.moveTo(drawPoint.getX, drawPoint.getY);
+    ctx.lineTo(mx, my);
+    ctx.stroke();
+
+    console.log(scales);
+  }
+};
+
+const stopScaling = (e) => {
+  var mx = getCursorPosition(e)[0] - canvas.offsetLeft,
+    my = getCursorPosition(e)[1] - canvas.offsetTop;
+  var scales = calcScales(drawPoint, new Point(mx, my));
+  var sX = scales[0];
+  var sY = scales[1];
+  scaleByPoint(controlPoint, sX, sY);
+  drawPoint = new Point(-1, -1);
+  clearCanvasAndDraw();
+  drawControlPoint();
 };
 
 const canvasMouseDown = (event) => {
@@ -212,24 +290,35 @@ const canvasMouseDown = (event) => {
   mouseY = getCursorPosition(event)[1] - canvas.offsetTop;
   switch (modeSelect.value) {
     case "1":
+      removeCanvasEventListeners();
       addPointByClick(event);
       clearCanvasAndDraw();
-      canvas.removeEventListener("mousemove", moveByMouse);
-      canvas.removeEventListener("mouseup", stopDrawingAndMove);
       break;
     case "2":
-      if (checkIfInside(new Point(mouseX, mouseY))) {
+      if (pointInPolygon(new Point(mouseX, mouseY))) {
         drawPoint = new Point(mouseX, mouseY);
+        removeCanvasEventListeners();
         canvas.addEventListener("mousemove", moveByMouse);
-        canvas.addEventListener("mouseup", stopDrawingAndMove);
-      } else {
-        canvas.removeEventListener("mousemove", moveByMouse);
-        canvas.removeEventListener("mouseup", stopDrawingAndMove);
+        canvas.addEventListener("mouseup", stopMoving);
+      } else removeCanvasEventListeners();
+
+      if (event.ctrlKey) {
+        addControlPoint(event);
+        clearCanvasAndDraw();
+        drawControlPoint();
       }
       break;
     case "3":
-      canvas.removeEventListener("mousemove", moveByMouse);
-      canvas.removeEventListener("mouseup", stopDrawingAndMove);
+      if (
+        pointInPolygon(new Point(mouseX, mouseY)) &&
+        controlPoint.getX !== -1
+      ) {
+        drawPoint = new Point(mouseX, mouseY);
+        removeCanvasEventListeners();
+        canvas.addEventListener("mousemove", rotateByMouse);
+        canvas.addEventListener("mouseup", stopRotating);
+      } else removeCanvasEventListeners();
+
       if (event.ctrlKey) {
         addControlPoint(event);
         clearCanvasAndDraw();
@@ -237,8 +326,16 @@ const canvasMouseDown = (event) => {
       }
       break;
     case "4":
-      canvas.removeEventListener("mousemove", moveByMouse);
-      canvas.removeEventListener("mouseup", stopDrawingAndMove);
+      if (
+        pointInPolygon(new Point(mouseX, mouseY)) &&
+        controlPoint.getX !== -1
+      ) {
+        drawPoint = new Point(mouseX, mouseY);
+        removeCanvasEventListeners();
+        canvas.addEventListener("mousemove", scaleByMouse);
+        canvas.addEventListener("mouseup", stopScaling);
+      } else removeCanvasEventListeners();
+
       if (event.ctrlKey) {
         addControlPoint(event);
         clearCanvasAndDraw();
@@ -250,19 +347,26 @@ const canvasMouseDown = (event) => {
 
 const removeCanvasEventListeners = () => {
   canvas.removeEventListener("mousemove", moveByMouse);
+  canvas.removeEventListener("mouseup", stopMoving);
+  canvas.removeEventListener("mousemove", rotateByMouse);
+  canvas.removeEventListener("mouseup", stopRotating);
+  canvas.removeEventListener("mousemove", scaleByMouse);
+  canvas.removeEventListener("mouseup", stopScaling);
 };
 
 canvas.addEventListener("mousedown", canvasMouseDown);
 
 canvas.addEventListener("mouseup", () => {
   canvas.removeEventListener("mousemove", moveByMouse);
+  canvas.removeEventListener("mousemove", rotateByMouse);
+  canvas.removeEventListener("mousemove", scaleByMouse);
   canvas.addEventListener("mousedown", canvasMouseDown);
 });
 
 clearButton.addEventListener("click", () => {
   clearCanvas();
   points = [];
-  controlPoint = null;
+  controlPoint = new Point(-1, -1);
 });
 
 setControlPoint.addEventListener("click", () => {
@@ -286,8 +390,8 @@ moveButton.addEventListener("click", () => {
 });
 
 rotate.addEventListener("click", () => {
-  if (modeSelect.value === "3" && angle.value > 0 && controlPoint.getX !== -1) {
-    var temp = calcRad(angle.value);
+  if (modeSelect.value === "3" && controlPoint.getX !== -1) {
+    var temp = calcRad(angleValue.value);
     rotateByAngle(controlPoint, temp);
     clearCanvasAndDraw();
     drawControlPoint();
@@ -297,7 +401,12 @@ rotate.addEventListener("click", () => {
 });
 
 scale.addEventListener("click", () => {
-  if (modeSelect.value === "4" && xScale.value > 0 && yScale.value > 0) {
+  if (
+    modeSelect.value === "4" &&
+    xScale.value > 0 &&
+    yScale.value > 0 &&
+    controlPoint
+  ) {
     scaleByPoint(controlPoint, xScale.value, yScale.value);
     clearCanvasAndDraw();
     drawControlPoint();
