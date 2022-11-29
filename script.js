@@ -39,7 +39,9 @@ let modeSelect = document.getElementById("mode"),
   angleValue = document.getElementById("angle"),
   scale = document.getElementById("scale"),
   xScale = document.getElementById("xScale"),
-  yScale = document.getElementById("yScale");
+  yScale = document.getElementById("yScale"),
+  save = document.getElementById("save"),
+  loadBtn = document.getElementById("loadBtn");
 
 let points = [];
 let controlPoint = new Point(-1, -1),
@@ -413,4 +415,31 @@ scale.addEventListener("click", () => {
   } else {
     alert("Choose scale mode! Make sure scale values are correct!");
   }
+});
+
+save.addEventListener("click", () => {
+  if (points.length > 0) {
+    const file = new Blob([JSON.stringify(points)], { type: "text/plain" });
+    var anchor = document.createElement("a");
+    anchor.href = URL.createObjectURL(file);
+    anchor.download = "shapes.txt";
+    anchor.click();
+  } else {
+    alert("Add some points!");
+  }
+});
+
+loadBtn.addEventListener("click", () => {
+  var file = document.getElementById("load").files[0];
+  if (file !== undefined) {
+    var reader = new FileReader();
+    reader.onloadend = function () {
+      var temp = JSON.parse(reader.result);
+      temp.forEach((point) => {
+        points.push(new Point(point.x, point.y));
+      });
+      clearCanvasAndDraw();
+    };
+    reader.readAsText(file);
+  } else alert("Pick a file to load!");
 });
